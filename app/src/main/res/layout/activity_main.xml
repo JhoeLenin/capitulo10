@@ -80,10 +80,30 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
-        <VideoView
-            android:id="@+id/vvReproductor"
+        <!-- Lista de Videos -->
+        <TextView
             android:layout_width="match_parent"
-            android:layout_height="300dp" />
+            android:layout_height="wrap_content"
+            android:text="Lista de Videos"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp" />
+
+        <ListView
+            android:id="@+id/lvVideos"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_marginTop="8dp" />
+
+        <!-- Reproductor de Video (ExoPlayer) -->
+        <com.google.android.exoplayer2.ui.PlayerView
+            android:id="@+id/pvReproductor"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:layout_marginTop="16dp"
+            android:background="@android:color/black"
+            app:use_controller="true"
+            app:resize_mode="fit" />
 
         <!-- CalendarView -->
         <TextView

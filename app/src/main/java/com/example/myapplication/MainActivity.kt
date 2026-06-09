@@ -3,7 +3,6 @@ package com.example.myapplication
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import android.webkit.WebSettings
 import android.webkit.WebViewClient
 import android.widget.ArrayAdapter
@@ -13,6 +12,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.example.myapplication.databinding.ActivityMainBinding
+import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.MediaItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -24,6 +25,13 @@ import java.util.Locale
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    private var exoPlayer: ExoPlayer? = null
+    private val videos = listOf(
+        "Video 1" to R.raw.video1,
+        "Video 2" to R.raw.video2,
+        "Video 3" to R.raw.video3,
+        "Video 4" to R.raw.video4
+    )
     private val itemsOriginales = listOf(
         "Android Studio", "Kotlin", "Java", "Firebase", "Retrofit", "Glide", "Jetpack"
     )
@@ -53,6 +61,21 @@ class MainActivity : AppCompatActivity() {
             true
         }
 
+        // Lista de Videos con ExoPlayer
+        exoPlayer = ExoPlayer.Builder(this).build()
+        binding.pvReproductor.player = exoPlayer
+
+        val videoAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, videos.map { it.first })
+        binding.lvVideos.adapter = videoAdapter
+        binding.lvVideos.setOnItemClickListener { _, _, position, _ ->
+            val (_, resId) = videos[position]
+            val mediaItem = MediaItem.fromUri("android.resource://${packageName}/$resId")
+            exoPlayer?.setMediaItem(mediaItem)
+            exoPlayer?.prepare()
+            exoPlayer?.play()
+            Toast.makeText(this, "Reproduciendo: ${videos[position].first}", Toast.LENGTH_SHORT).show()
+        }
+
         // WebView
         val webSettings = binding.wvContenido.settings
         webSettings.javaScriptEnabled = true
@@ -67,28 +90,6 @@ class MainActivity : AppCompatActivity() {
             </html>
         """.trimIndent()
         binding.wvContenido.loadData(htmlContent, "text/html; charset=utf-8", "UTF-8")
-
-        // VideoView
-        val mediaController = android.widget.MediaController(this)
-        mediaController.setAnchorView(binding.vvReproductor)
-        binding.vvReproductor.setMediaController(mediaController)
-
-        val videoPath = "android.resource://${packageName}/${R.raw.chicagomj}"
-        binding.vvReproductor.setVideoURI(Uri.parse(videoPath))
-
-        binding.vvReproductor.setOnPreparedListener {
-            Log.d("VIDEO", "Video preparado")
-            it.start()
-        }
-        binding.vvReproductor.setOnCompletionListener {
-            Log.d("VIDEO", "Video completado")
-            Toast.makeText(this, "Video terminado", Toast.LENGTH_SHORT).show()
-        }
-        binding.vvReproductor.setOnErrorListener { _, what, extra ->
-            Log.e("VIDEO", "Error reproduciendo video: what=$what, extra=$extra")
-            Toast.makeText(this, "Error reproduciendo video", Toast.LENGTH_SHORT).show()
-            true
-        }
 
         // CalendarView
         val today = Calendar.getInstance()
@@ -172,5 +173,11 @@ class MainActivity : AppCompatActivity() {
             val seleccionado = itemsActuales[position]
             Toast.makeText(this, "Seleccionaste: $seleccionado", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        exoPlayer?.release()
+        exoPlayer = null
     }
 }
